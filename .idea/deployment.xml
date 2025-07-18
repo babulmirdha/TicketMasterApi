@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="AppsGhar" confirmBeforeDeletion="false">
+    <option name="confirmBeforeDeletion" value="false" />
+    <serverData>
+      <paths name="AppsGhar">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/public_html/projects/ticket_master/v1" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Goalie App">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/public_html/GoalieAppApi" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
