@@ -1,40 +1,76 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-require_once 'classes/class.accounts.php'; // Your DB connection class
+require_once 'classes/class.accounts.php';
 require_once 'classes/class.db_connect.php';
 
 class TicketAPI extends db_connect
 {
-    public function __construct($dbo = NULL)
+    public function __construct($dbo = null)
     {
         parent::__construct($dbo);
     }
 
-    // Fetch all tickets
     public function getTickets()
     {
-        $result = ["error" => true, "msg" => "No tickets found", "tickets" => []];
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    ticket_id,
+                    artist_name,
+                    event_name,
+                    section,
+                    row_number,
+                    seat,
+                    event_date,
+                    location,
+                    event_time,
+                    ticket_type,
+                    level,
+                    ticket_quantity,
+                    image_path,
+                    created_at
+                FROM tbl_ticketform
+                ORDER BY created_at DESC
+            ");
 
-        $stmt = $this->db->prepare("SELECT id, artist_name, event_name, section, row_number, seat, event_date, location, event_time, ticket_type, level, ticket_quantity, image_path, created_at FROM tbl_ticketform ORDER BY created_at DESC");
-        
-        if ($stmt->execute()) {
-            $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if ($tickets) {
-                $result = ["error" => false, "msg" => "Tickets fetched successfully", "tickets" => $tickets];
+            if (!$stmt->execute()) {
+                throw new Exception("DB execution failed");
             }
-        } else {
-            $result = ["error" => true, "msg" => "Failed to fetch tickets", "tickets" => []];
-        }
 
-        return $result;
+            $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($tickets)) {
+                return [
+                    "error"   => true,
+                    "msg"     => "No tickets found",
+                    "tickets" => []
+                ];
+            }
+
+            return [
+                "error"   => false,
+                "msg"     => "Tickets fetched successfully",
+                "tickets" => $tickets
+            ];
+
+        } catch (Exception $e) {
+            return [
+                "error"   => true,
+                "msg"     => "Failed to fetch tickets: " . $e->getMessage(),
+                "tickets" => []
+            ];
+        }
     }
 }
 
-// Handle GET request
+// Only allow GET
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $api = new TicketAPI();
-    $response = $api->getTickets();
-    echo json_encode($response);
+    echo json_encode($api->getTickets());
 } else {
-    echo json_encode(['error' => true, 'msg' => 'Invalid request method']);
+    echo json_encode([
+        "error" => true,
+        "msg"   => "Invalid request method",
+        "tickets" => []
+    ]);
 }

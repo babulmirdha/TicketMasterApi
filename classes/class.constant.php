@@ -3,19 +3,19 @@ header('Content-Type: application/json; charset=utf-8');
 
 // Only define DB constants if not defined yet
 if (!defined('DB_HOST')) {
-    if ($_SERVER['SERVER_NAME'] === 'localhost') {
+    // if ($_SERVER['SERVER_NAME'] === 'localhost') {
         // Local development DB config
         define("DB_HOST", "localhost");
         define("DB_USER", "root");
         define("DB_PASS", "");
         define("DB_NAME", "ticker_system"); // your local DB name
-    } else {
-        // Production DB config
-        define("DB_HOST", "localhost");
-        define("DB_USER", "u833998383_ticket_master");
-        define("DB_PASS", "u833998383_Ticket_master");
-        define("DB_NAME", "u833998383_ticket_master");
-    }
+    // } else {
+    //     // Production DB config
+    //     define("DB_HOST", "localhost");
+    //     define("DB_USER", "u833998383_ticket_master");
+    //     define("DB_PASS", "u833998383_Ticket_master");
+    //     define("DB_NAME", "u833998383_ticket_master");
+    // }
 }
 
 // Url
@@ -28,8 +28,15 @@ if (!defined('PROFILE_PHOTOS_PATH')) {
     define("PROFILE_PHOTOS_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/events/");
 }
 if (!defined('TEMP_PATH')) {
-    define("TEMP_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/temp/");
+    if ($_SERVER['HTTP_HOST'] === 'localhost') {
+        // Local development (XAMPP)
+        define("TEMP_PATH", "C:/xampp12/htdocs/TicketMasterApi/uploads/temp/");
+    } else {
+        // Live server
+        define("TEMP_PATH", "/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/temp/");
+    }
 }
+
 
 // Paths for url
 if (!defined('PROFILE_PATH_URL')) {
