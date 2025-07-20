@@ -14,38 +14,52 @@ class accounts extends db_connect
         parent::__construct($dbo);
     }
 
-    public function signUp($name,$email,$password){
+  public function signUp($name, $email, $password) {
+    $result = array(
+        "error" => true,
+        "error_code" => ERROR_UNKNOWN
+    );
 
-        $result = array("error" => true,
-            "error_code" => ERROR_UNKNOWN);
-
+    try {
         $hashedPassword = $this->getHashedPassword($password);
 
-        $time = time();
+        // Sanitize inputs (optional but good practice)
+        $name = htmlspecialchars(trim($name), ENT_QUOTES, 'UTF-8');
+        $email = strtolower(trim($email)); // Normalize email case
 
-        $stmt = $this->db->prepare("INSERT INTO tbl_users values ('', :name, :email, :password,'1')");
+        $stmt = $this->db->prepare("
+            INSERT INTO tbl_users (name, email, password, status)
+            VALUES (:name, :email, :password, '1')
+        ");
+
         $stmt->bindParam(":name", $name, PDO::PARAM_STR);
         $stmt->bindParam(":email", $email, PDO::PARAM_STR);
         $stmt->bindParam(":password", $hashedPassword, PDO::PARAM_STR);
 
         if ($stmt->execute()) {
-
             $userId = $this->db->lastInsertId();
 
-
-            $result = array("error" => false,
-                    "error_code" => ERROR_SUCCESS,
-                "userId"=>$userId);
-
+            $result = array(
+                "error" => false,
+                "error_code" => ERROR_SUCCESS,
+                "userId" => $userId
+            );
+        } else {
+            // Optional: log error
+            error_log("SignUp failed: " . implode(", ", $stmt->errorInfo()));
         }
 
-        return $result;
-
-
-
+    } catch (Exception $e) {
+        error_log("Exception during signUp: " . $e->getMessage());
+        $result['msg'] = "Internal server error.";
     }
 
-    public function isUserAlreadyRegisteredByEmail($email) {
+    return $result;
+}
+
+
+    public function isUserAlreadyRegisteredByEmail($email)
+    {
 
         $stmt = $this->db->prepare("SELECT id FROM tbl_users WHERE email = (:email) LIMIT 1");
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
@@ -63,26 +77,26 @@ class accounts extends db_connect
 
     }
 
-    public function login($email,$password){
+    public function login($email, $password) {
+    $stmt = $this->db->prepare("SELECT * FROM tbl_users WHERE email = :email AND status = '1'");
+    $stmt->bindParam(":email", $email, PDO::PARAM_STR);
+    $stmt->execute();
 
-        $stmt = $this->db->prepare("SELECT * from tbl_users where email=:email AND status='1' ");
-        $stmt->bindParam(":email", $email, PDO::PARAM_STR);
-        $stmt->execute();
-
-        if ($stmt->rowCount() > 0) {
-            $row = $stmt->fetch();
-            if (password_verify($password, $row['password']))
-                return true;
-            else false;
+    if ($stmt->rowCount() > 0) {
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (password_verify($password, $row['password'])) {
+            return true; // Or return $row;
         }
-
-        return false;
     }
+
+    return false;
+}
+
 
     public function getAccountInfoByEmail($email)
     {
 
-        $result=array();
+        $result = array();
 
         $stmt = $this->db->prepare("SELECT u.* from tbl_users as u where u.email=:email");
         $stmt->bindParam(":email", $email, PDO::PARAM_STR);
@@ -92,11 +106,11 @@ class accounts extends db_connect
 
             $row = $stmt->fetch();
 
-            $result=array(
-                "id"=>$row['id'],
-                "name"=>$row['name'],
-                "email"=>$row['email'],
-                "status"=>$row['status']
+            $result = array(
+                "id" => $row['id'],
+                "name" => $row['name'],
+                "email" => $row['email'],
+                "status" => $row['status']
             );
 
             return $result;
@@ -109,7 +123,7 @@ class accounts extends db_connect
     public function getAccountInfoById($id)
     {
 
-        $result=array();
+        $result = array();
 
         $stmt = $this->db->prepare("SELECT u.* from tbl_users as u where u.id=:id");
         $stmt->bindParam(":id", $id, PDO::PARAM_INT);
@@ -119,11 +133,11 @@ class accounts extends db_connect
 
             $row = $stmt->fetch();
 
-            $result=array(
-                "id"=>$row['id'],
-                "name"=>$row['name'],
-                "email"=>$row['email'],
-                "status"=>$row['status']
+            $result = array(
+                "id" => $row['id'],
+                "name" => $row['name'],
+                "email" => $row['email'],
+                "status" => $row['status']
             );
 
 
@@ -134,7 +148,8 @@ class accounts extends db_connect
         return $result;
     }
 
-    public function getHashedPassword($password) {
+    public function getHashedPassword($password)
+    {
         return password_hash($password, PASSWORD_DEFAULT);
     }
 
