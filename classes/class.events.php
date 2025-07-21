@@ -404,26 +404,33 @@ class events extends db_connect
     
   public function getFavouriteEventsForUser()
 {
-    $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
+    $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "data" => []];
 
     $userId = $this->getRequesterId();
 
-    $stmt = $this->db->prepare("
-        SELECT 
-            e.*,
-            t.id as ticket_id,
-            t.seat as ticket_seat,
-            t.create_at as ticket_created_at
-        FROM tbl_favourite_events f
-        JOIN tbl_events e ON f.event_id = e.id
-        LEFT JOIN tbl_tickets t ON e.id = t.event_id
-        WHERE f.user_id = :user_id
-        ORDER BY f.created_at DESC, t.id ASC
-    ");
+    if (!$userId) {
+        $result['error_code'] = 401; // Unauthorized or invalid user ID
+        $result['error'] = true;
+        return $result;
+    }
 
-    $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    try {
+        $stmt = $this->db->prepare("
+            SELECT 
+                e.*,
+                t.id as ticket_id,
+                t.seat as ticket_seat,
+                t.create_at as ticket_created_at
+            FROM tbl_favourite_events f
+            JOIN tbl_events e ON f.event_id = e.id
+            LEFT JOIN tbl_tickets t ON e.id = t.event_id
+            WHERE f.user_id = :user_id
+            ORDER BY f.created_at DESC, t.id ASC
+        ");
 
-    if ($stmt->execute()) {
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
         $events = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -461,6 +468,65 @@ class events extends db_connect
         $result['error'] = false;
         $result['error_code'] = ERROR_SUCCESS;
         $result['data'] = array_values($events);
+
+    } catch (PDOException $e) {
+        $result['error_code'] = 500;
+        $result['error'] = true;
+        $result['message'] = "Database error: " . $e->getMessage();
+    }
+
+    return $result;
+}
+public function addFavouriteEvent($userId, $eventId)
+{
+    $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
+
+    // Validate user ID exists
+    $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
+    $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    $stmtUser->execute();
+    if (!$stmtUser->fetch()) {
+        $result['error_code'] = 404;
+        $result['message'] = "User not found.";
+        return $result;
+    }
+
+    // Validate event ID exists
+    $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
+    $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    $stmtEvent->execute();
+    if (!$stmtEvent->fetch()) {
+        $result['error_code'] = 404;
+        $result['message'] = "Event not found.";
+        return $result;
+    }
+
+    // Check if already favourited to avoid duplicates
+    $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+    $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    $stmtCheck->execute();
+
+    if ($stmtCheck->fetch()) {
+        // Already favourited
+        $result['error'] = false;
+        $result['error_code'] = 0;
+        $result['message'] = "Event already in favourites.";
+        return $result;
+    }
+
+    // Insert into favourites
+    $stmtInsert = $this->db->prepare("INSERT INTO tbl_favourite_events (user_id, event_id, created_at) VALUES (:user_id, :event_id, NOW())");
+    $stmtInsert->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    $stmtInsert->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+
+    if ($stmtInsert->execute()) {
+        $result['error'] = false;
+        $result['error_code'] = 0;
+        $result['message'] = "Event added to favourites.";
+    } else {
+        $errorInfo = $stmtInsert->errorInfo();
+        $result['message'] = "Failed to add favourite event: " . $errorInfo[2];
     }
 
     return $result;
