@@ -15,116 +15,87 @@ class cdn extends db_connect
     public function __construct($dbo = NULL)
     {
         $this->conn_id = @ftp_connect($this->ftp_server);
-
         parent::__construct($dbo);
     }
 
     public function upload($file, $remote_file)
     {
-        $remote_file = $this->cdn_server.$remote_file;
+        $remote_file = $this->cdn_server . $remote_file;
 
-        if ($this->conn_id) {
-
-            if (@ftp_login($this->conn_id, $this->ftp_user_name, $this->ftp_user_pass)) {
-
-                // upload a file
-                if (@ftp_put($this->conn_id, $remote_file, $file, FTP_BINARY)) {
-
-                    return true;
-
-                } else {
-
-                    return false;
-                }
-            }
+        if ($this->conn_id && @ftp_login($this->conn_id, $this->ftp_user_name, $this->ftp_user_pass)) {
+            return @ftp_put($this->conn_id, $remote_file, $file, FTP_BINARY);
         }
+
+        return false;
+    }
+
+    private function safeMove($srcPath, $destDir)
+    {
+        $filename = basename($srcPath);
+        $destPath = $destDir . $filename;
+
+        if (!file_exists($srcPath)) {
+            return ["error" => true, "error_code" => 1, "msg" => "Source file does not exist"];
+        }
+
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0777, true);
+        }
+
+        if (!@rename($srcPath, $destPath)) {
+            return ["error" => true, "error_code" => 2, "msg" => "Failed to move file"];
+        }
+
+        return ["error" => false, "error_code" => ERROR_SUCCESS, "fileUrl" => $destPath];
     }
 
     public function uploadMyPhoto($imgFilename)
     {
-        rename($imgFilename, MY_PHOTOS_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-                        "error_code" => ERROR_SUCCESS,
-                        "fileUrl" => MY_PHOTOS_PATH.basename($imgFilename));
-
-        return $result;
+        return $this->safeMove($imgFilename, MY_PHOTOS_PATH);
     }
 
     public function uploadPhoto($imgFilename)
     {
-        rename($imgFilename, PHOTO_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-                        "error_code" => ERROR_SUCCESS,
-                        "fileUrl" => PHOTO_PATH.basename($imgFilename));
-
-        return $result;
+        return $this->safeMove($imgFilename, PHOTO_PATH);
     }
 
     public function uploadCover($imgFilename)
     {
-        rename($imgFilename, COVER_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-                        "error_code" => ERROR_SUCCESS,
-                        "fileUrl" => COVER_PATH.basename($imgFilename));
-
-        return $result;
+        return $this->safeMove($imgFilename, COVER_PATH);
     }
 
     public function uploadPostImg($imgFilename)
     {
-        rename($imgFilename, POST_PHOTO_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-                        "error_code" => ERROR_SUCCESS,
-                        "fileUrl" => POST_PHOTO_PATH_URL.basename($imgFilename));
-
-        return $result;
+        $res = $this->safeMove($imgFilename, POST_PHOTO_PATH);
+        if (!$res["error"]) $res["fileUrl"] = POST_PHOTO_PATH_URL . basename($imgFilename);
+        return $res;
     }
 
     public function uploadProfileImg($imgFilename)
     {
-        rename($imgFilename, PROFILE_PHOTOS_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-            "error_code" => ERROR_SUCCESS,
-            "fileUrl" => PROFILE_PATH_URL.basename($imgFilename));
-
-        return $result;
+        $res = $this->safeMove($imgFilename, PROFILE_PHOTOS_PATH);
+        if (!$res["error"]) $res["fileUrl"] = PROFILE_PATH_URL . basename($imgFilename);
+        return $res;
     }
 
     public function uploadCoverImg($imgFilename)
     {
-        rename($imgFilename, LISTING_COVER_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-            "error_code" => ERROR_SUCCESS,
-            "fileUrl" => LISTING_COVER_IMAGE_URL.basename($imgFilename));
-
-        return $result;
+        $res = $this->safeMove($imgFilename, LISTING_COVER_PATH);
+        if (!$res["error"]) $res["fileUrl"] = LISTING_COVER_IMAGE_URL . basename($imgFilename);
+        return $res;
     }
 
     public function uploadGalleryImg($imgFilename)
     {
-        rename($imgFilename, LISTING_GALLERY_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-            "error_code" => ERROR_SUCCESS,
-            "fileUrl" => LISTING_GALLERY_IMAGE_URL.basename($imgFilename));
-
-        return $result;
+        $res = $this->safeMove($imgFilename, LISTING_GALLERY_PATH);
+        if (!$res["error"]) $res["fileUrl"] = LISTING_GALLERY_IMAGE_URL . basename($imgFilename);
+        return $res;
     }
 
     public function uploadChatImg($imgFilename)
     {
-        rename($imgFilename, CHAT_IMAGE_PATH.basename($imgFilename));
-
-        $result = array("error" => false,
-                        "error_code" => ERROR_SUCCESS,
-                        "fileUrl" => CHAT_IMAGE_URL.basename($imgFilename));
-
-        return $result;
+        $res = $this->safeMove($imgFilename, CHAT_IMAGE_PATH);
+        if (!$res["error"]) $res["fileUrl"] = CHAT_IMAGE_URL . basename($imgFilename);
+        return $res;
     }
 }
