@@ -531,6 +531,59 @@ public function addFavouriteEvent($userId, $eventId)
 
     return $result;
 }
+public function removeFavouriteEvent($userId, $eventId)
+{
+    $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
+
+    // Validate user ID exists
+    $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
+    $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    $stmtUser->execute();
+    if (!$stmtUser->fetch()) {
+        $result['error_code'] = 404;
+        $result['message'] = "User not found.";
+        return $result;
+    }
+
+    // Validate event ID exists
+    $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
+    $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    $stmtEvent->execute();
+    if (!$stmtEvent->fetch()) {
+        $result['error_code'] = 404;
+        $result['message'] = "Event not found.";
+        return $result;
+    }
+
+    // Check if favourite exists
+    $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+    $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    $stmtCheck->execute();
+
+    if (!$stmtCheck->fetch()) {
+        // Not in favourites
+        $result['error_code'] = 404;
+        $result['message'] = "Favourite event not found.";
+        return $result;
+    }
+
+    // Delete favourite
+    $stmtDelete = $this->db->prepare("DELETE FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+    $stmtDelete->bindParam(':user_id', $userId, PDO::PARAM_INT);
+    $stmtDelete->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+
+    if ($stmtDelete->execute()) {
+        $result['error'] = false;
+        $result['error_code'] = 0;
+        $result['message'] = "Favourite event removed.";
+    } else {
+        $errorInfo = $stmtDelete->errorInfo();
+        $result['message'] = "Failed to remove favourite event: " . $errorInfo[2];
+    }
+
+    return $result;
+}
 
 
 }
