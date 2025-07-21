@@ -35,11 +35,19 @@ if (!empty($_POST)) {
         $tempPath = TEMP_PATH . "{$currentTime}." . $ext;
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $tempPath)) {
+
+            // echo json_encode("move_uploaded_file");
+
             $imgLib = new imglib();
             $response = $imgLib->createEventImage($tempPath, $tempPath);
+
+        
             if (isset($response['imgUrl'])) {
                 $image = $response['imgUrl'];
             }
+
+            //  echo json_encode($response);
+
             unset($imgLib);
         }
     }

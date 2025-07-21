@@ -1,30 +1,41 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
+
 define("DB_HOST", "localhost");
 define("DB_USER", "root");
 define("DB_PASS", "");
-define("DB_NAME", "u833998383_ticket_master");
+define("DB_NAME","u833998383_ticket_master");
 
 //Url
-define("APP_URL", "https://appsghar.com/projects/ticket_master/v1");
+// define("APP_URL","https://appsghar.com/projects/ticket_master/v1");
+define("APP_URL","http://192.168.0.140/TicketMasterApi");
 
 //Paths
-define("PROFILE_PHOTOS_PATH", "/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/events/");
-define("TEMP_PATH", "/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/temp/");
+// define("PROFILE_PHOTOS_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/events/");
+// define("TEMP_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/temp/");
+
+define("PROFILE_PHOTOS_PATH", "C:/xampp12/htdocs/TicketMasterApi/public/uploads/events/");
+define("TEMP_PATH", "C:/xampp12/htdocs/TicketMasterApi/public/uploads/temp/");
+
 
 //Paths for url
-define("PROFILE_PATH_URL", "/uploads/events/");
+define("PROFILE_PATH_URL","/uploads/events/");
 
 //Errors Configurations
 define("ERROR_SUCCESS", 0);
 define("ERROR_UNKNOWN", 100);
-define("ERROR_ACCOUNT_ID", 400);
-define("REVOKED_ACCESS", 500);
+define("ERROR_ACCOUNT_ID",400);
+define("REVOKED_ACCESS",500);
 
 
 //Email Configurations
-define("HOST", "");
-define("EMAIL", "");
+define("HOST","");
+define("EMAIL","");
 define("PASSWORD", "");
-define("TITLE", "");
+define("TITLE","");
+
+
+
+
+?>
