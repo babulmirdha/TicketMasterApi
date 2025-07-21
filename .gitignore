@@ -472,5 +472,6 @@ composer.lock
 *.sass.map
 *.scss.map
 
-public/uploads/
+public/uploads/events
+public/uploads/temp
 uploads/
