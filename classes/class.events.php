@@ -59,7 +59,7 @@ class events extends db_connect
 
     ) {
         $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
-        $userId = $this->getRequesterId();
+        $user_id = $this->getRequesterId();
         $create_at = time();
 
         $sql = "
@@ -74,7 +74,7 @@ class events extends db_connect
 
         $stmt = $this->db->prepare($sql);
 
-        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':artist_name', $artist_name, PDO::PARAM_STR);
         $stmt->bindParam(':event_name', $event_name, PDO::PARAM_STR);
         $stmt->bindParam(':section', $section, PDO::PARAM_INT);
@@ -102,7 +102,7 @@ class events extends db_connect
             for ($i = 0; $i < $total_tickets; $i++) {
                 $currentSeat = $seat + $i;
                 $ticketStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-                $ticketStmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+                $ticketStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
                 $ticketStmt->bindParam(':seat', $currentSeat, PDO::PARAM_INT);
                 $ticketStmt->bindParam(':create_at', $create_at, PDO::PARAM_INT);
                 $ticketStmt->execute();
