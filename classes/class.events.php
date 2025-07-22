@@ -662,4 +662,55 @@ class events extends db_connect
 
         return $result;
     }
+
+    public function transferTickets(array $ticket_ids, string $recipient_email)
+{
+    $senderId = $this->getRequesterId();
+    $placeholders = implode(',', array_fill(0, count($ticket_ids), '?'));
+
+    $result = ["error" => true, "msg" => "Unknown error"];
+
+    // 1. Check if recipient email exists
+    $stmt = $this->db->prepare("SELECT id FROM tbl_users WHERE email = ?");
+    $stmt->execute([$recipient_email]);
+    $recipient = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$recipient) {
+        $result["msg"] = "Recipient email not found in users list.";
+        return $result;
+    }
+
+    $recipientId = (int)$recipient['id'];
+
+    // 2. Verify sender owns all tickets
+    $checkStmt = $this->db->prepare("
+        SELECT id FROM tbl_tickets 
+        WHERE id IN ($placeholders) AND userId = ?
+    ");
+    $params = array_merge($ticket_ids, [$senderId]);
+    $checkStmt->execute($params);
+    $ownedTickets = $checkStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    if (count($ownedTickets) !== count($ticket_ids)) {
+        $result["msg"] = "One or more tickets do not belong to you.";
+        return $result;
+    }
+
+    // 3. Update tickets to recipient userId
+    $updateStmt = $this->db->prepare("
+        UPDATE tbl_tickets SET userId = ? WHERE id IN ($placeholders)
+    ");
+    $updateParams = array_merge([$recipientId], $ticket_ids);
+
+    if ($updateStmt->execute($updateParams)) {
+        $result["error"] = false;
+        $result["msg"] = "Ticket(s) successfully transferred.";
+    } else {
+        $result["msg"] = "Failed to transfer tickets.";
+    }
+
+    return $result;
+}
+
+
 }
