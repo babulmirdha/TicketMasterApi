@@ -6,7 +6,7 @@ require_once 'classes/class.events.php';
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     echo json_encode([
         'error' => true,
-        'msg' => 'event id required'
+        'msg' => 'Event ID is required.'
     ]);
     exit;
 }
@@ -14,7 +14,6 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $id = (int) $_GET['id'];
 
 if (!empty($_POST)) {
-    // Required fields
     $requiredFields = [
         'userId', 'artistName', 'eventName', 'section', 'row', 'seat',
         'date', 'location', 'time', 'ticketType', 'level', 'total_tickets'
@@ -22,7 +21,7 @@ if (!empty($_POST)) {
 
     $missingFields = [];
     foreach ($requiredFields as $field) {
-        if (!isset($_POST[$field]) || $_POST[$field] === '') {
+        if (!isset($_POST[$field]) || trim($_POST[$field]) === '') {
             $missingFields[] = $field;
         }
     }
@@ -35,26 +34,6 @@ if (!empty($_POST)) {
         exit;
     }
 
-    $image = '';
-
-    // Handle image upload
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $currentTime = time();
-        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-        $tempPath = TEMP_PATH . "{$currentTime}." . $ext;
-
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $tempPath)) {
-            $imgLib = new imglib();
-            $response = $imgLib->createEventImage($tempPath, $tempPath);
-
-            if (isset($response['imgUrl'])) {
-                $image = $response['imgUrl'];
-            }
-            unset($imgLib);
-        }
-    }
-
-    // Sanitize and assign variables
     $userId = (int) $_POST['userId'];
     $artistName = trim($_POST['artistName']);
     $eventName = trim($_POST['eventName']);
@@ -68,9 +47,40 @@ if (!empty($_POST)) {
     $level = trim($_POST['level']);
     $totalTickets = (int) $_POST['total_tickets'];
 
-    // Update event
     $event = new events();
     $event->setRequesterId($userId);
+
+    // ✅ Get old image path first
+    $oldEvent = $event->getEventById($id); // You must implement getEventById($id) in class.events.php
+    $oldImagePath = $oldEvent && isset($oldEvent['image']) ? $oldEvent['image'] : null;
+
+    $image = $oldImagePath;
+
+    // ✅ Handle image upload + replacement
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $currentTime = time();
+        $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+        $tempPath = TEMP_PATH . "{$currentTime}." . $ext;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $tempPath)) {
+            $imgLib = new imglib();
+            $response = $imgLib->createEventImage($tempPath, $tempPath);
+
+            if (isset($response['imgUrl']) && !$response['error']) {
+                $image = $response['imgUrl'];
+
+                // ✅ Delete old image file if it's not null and different
+                if ($oldImagePath && $oldImagePath !== $image) {
+                    $absolutePath = __DIR__ . $oldImagePath;
+                    if (file_exists($absolutePath)) {
+                        unlink($absolutePath);
+                    }
+                }
+            }
+
+            unset($imgLib);
+        }
+    }
 
     $result = $event->updateEvent(
         $id,
@@ -91,4 +101,3 @@ if (!empty($_POST)) {
     echo json_encode($result);
     exit;
 }
-?>

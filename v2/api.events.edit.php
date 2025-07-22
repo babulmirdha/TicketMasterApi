@@ -1,7 +1,8 @@
 <?php
-require_once 'classes/class.constant.php';
-require_once 'classes/class.imglib.php';
-require_once 'classes/class.events.php';
+require_once '../classes/class.constant.php';
+require_once '../classes/class.events.php';
+require_once '../classes/class.imglib.php';
+
 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     echo json_encode([

@@ -207,6 +207,18 @@ class events extends db_connect
 
         return $result;
     }
+    public function getEventById($eventId)
+{
+    $stmt = $this->db->prepare("SELECT * FROM tbl_events WHERE id = :event_id");
+    $stmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    
+    if ($stmt->execute()) {
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    return false;
+}
+
 
 
     public function getAllEventsWithTickets()

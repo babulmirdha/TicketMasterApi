@@ -1,6 +1,6 @@
 <?php
-require_once 'classes/class.constant.php';
-require_once 'classes/class.events.php';  // or class.favourites.php if method is there
+require_once '../classes/class.constant.php';
+require_once '../classes/class.events.php';
 
 if (!empty($_POST)) {
     $userId = isset($_POST['userId']) ? intval($_POST['userId']) : 0;
