@@ -70,7 +70,7 @@ if (!empty($_POST)) {
 
     // Create new event
     $event = new events();
-    $event->setRequesterId($userId);
+    $event->setRequesterId($user_id);
 
     $result = $event->newEvent(
         $artist_name,
