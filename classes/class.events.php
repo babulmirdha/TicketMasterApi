@@ -56,6 +56,7 @@ class events extends db_connect
         $level,
         $total_tickets,
         $image
+
     ) {
         $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
         $userId = $this->getRequesterId();
@@ -93,14 +94,15 @@ class events extends db_connect
 
             // Insert into tbl_tickets
             $ticketSql = "
-            INSERT INTO tbl_tickets (event_id, seat, create_at)
-            VALUES (:event_id, :seat, :create_at) ";
+            INSERT INTO tbl_tickets (event_id, seat, create_at, userId)
+            VALUES (:event_id, :seat, :create_at, :user_id) ";
 
             $ticketStmt = $this->db->prepare($ticketSql);
 
             for ($i = 0; $i < $total_tickets; $i++) {
                 $currentSeat = $seat + $i;
                 $ticketStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+                $ticketStmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
                 $ticketStmt->bindParam(':seat', $currentSeat, PDO::PARAM_INT);
                 $ticketStmt->bindParam(':create_at', $create_at, PDO::PARAM_INT);
                 $ticketStmt->execute();
@@ -208,16 +210,16 @@ class events extends db_connect
         return $result;
     }
     public function getEventById($eventId)
-{
-    $stmt = $this->db->prepare("SELECT * FROM tbl_events WHERE id = :event_id");
-    $stmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-    
-    if ($stmt->execute()) {
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
+    {
+        $stmt = $this->db->prepare("SELECT * FROM tbl_events WHERE id = :event_id");
+        $stmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
 
-    return false;
-}
+        if ($stmt->execute()) {
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        return false;
+    }
 
 
 
@@ -413,21 +415,21 @@ class events extends db_connect
     }
 
 
-    
-  public function getFavouriteEventsForUser()
-{
-    $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "data" => []];
 
-    $userId = $this->getRequesterId();
+    public function getFavouriteEventsForUser()
+    {
+        $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "data" => []];
 
-    if (!$userId) {
-        $result['error_code'] = 401; // Unauthorized or invalid user ID
-        $result['error'] = true;
-        return $result;
-    }
+        $userId = $this->getRequesterId();
 
-    try {
-        $stmt = $this->db->prepare("
+        if (!$userId) {
+            $result['error_code'] = 401; // Unauthorized or invalid user ID
+            $result['error'] = true;
+            return $result;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
             SELECT 
                 e.*,
                 t.id as ticket_id,
@@ -440,171 +442,170 @@ class events extends db_connect
             ORDER BY f.created_at DESC, t.id ASC
         ");
 
-        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->execute();
+            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->execute();
 
-        $events = [];
+            $events = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $eventId = $row['id'];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $eventId = $row['id'];
 
-            if (!isset($events[$eventId])) {
-                $events[$eventId] = [
-                    "event_id" => $eventId,
-                    "artist_name" => $row['artist_name'],
-                    "event_name" => $row['event_name'],
-                    "section" => $row['section'],
-                    "row" => $row['row'],
-                    "seat" => $row['seat'],
-                    "date" => $row['date'],
-                    "location" => $row['location'],
-                    "time" => $row['time'],
-                    "ticket_type" => $row['ticket_type'],
-                    "level" => $row['level'],
-                    "total_tickets" => $row['total_tickets'],
-                    "image" => $row['image'],
-                    "create_at" => $row['create_at'],
-                    "tickets" => []
-                ];
+                if (!isset($events[$eventId])) {
+                    $events[$eventId] = [
+                        "event_id" => $eventId,
+                        "artist_name" => $row['artist_name'],
+                        "event_name" => $row['event_name'],
+                        "section" => $row['section'],
+                        "row" => $row['row'],
+                        "seat" => $row['seat'],
+                        "date" => $row['date'],
+                        "location" => $row['location'],
+                        "time" => $row['time'],
+                        "ticket_type" => $row['ticket_type'],
+                        "level" => $row['level'],
+                        "total_tickets" => $row['total_tickets'],
+                        "image" => $row['image'],
+                        "create_at" => $row['create_at'],
+                        "tickets" => []
+                    ];
+                }
+
+                if (!empty($row['ticket_id'])) {
+                    $events[$eventId]['tickets'][] = [
+                        "ticket_id" => $row['ticket_id'],
+                        "seat" => $row['ticket_seat'],
+                        "create_at" => $row['ticket_created_at']
+                    ];
+                }
             }
 
-            if (!empty($row['ticket_id'])) {
-                $events[$eventId]['tickets'][] = [
-                    "ticket_id" => $row['ticket_id'],
-                    "seat" => $row['ticket_seat'],
-                    "create_at" => $row['ticket_created_at']
-                ];
-            }
+            $result['error'] = false;
+            $result['error_code'] = ERROR_SUCCESS;
+            $result['data'] = array_values($events);
+        } catch (PDOException $e) {
+            $result['error_code'] = 500;
+            $result['error'] = true;
+            $result['message'] = "Database error: " . $e->getMessage();
         }
 
-        $result['error'] = false;
-        $result['error_code'] = ERROR_SUCCESS;
-        $result['data'] = array_values($events);
-
-    } catch (PDOException $e) {
-        $result['error_code'] = 500;
-        $result['error'] = true;
-        $result['message'] = "Database error: " . $e->getMessage();
+        return $result;
     }
+    public function addFavouriteEvent($userId, $eventId)
+    {
+        $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
 
-    return $result;
-}
-public function addFavouriteEvent($userId, $eventId)
-{
-    $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
+        // Validate user ID exists
+        $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
+        $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtUser->execute();
+        if (!$stmtUser->fetch()) {
+            $result['error_code'] = 404;
+            $result['message'] = "User not found.";
+            return $result;
+        }
 
-    // Validate user ID exists
-    $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
-    $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmtUser->execute();
-    if (!$stmtUser->fetch()) {
-        $result['error_code'] = 404;
-        $result['message'] = "User not found.";
+        // Validate event ID exists
+        $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
+        $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $stmtEvent->execute();
+        if (!$stmtEvent->fetch()) {
+            $result['error_code'] = 404;
+            $result['message'] = "Event not found.";
+            return $result;
+        }
+
+        // Check if already favourited to avoid duplicates
+        $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+        $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $stmtCheck->execute();
+
+        if ($stmtCheck->fetch()) {
+            // Already favourited
+            $result['error'] = false;
+            $result['error_code'] = 0;
+            $result['message'] = "Event already in favourites.";
+            return $result;
+        }
+
+        // Insert into favourites
+        $stmtInsert = $this->db->prepare("INSERT INTO tbl_favourite_events (user_id, event_id, created_at) VALUES (:user_id, :event_id, NOW())");
+        $stmtInsert->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtInsert->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+
+        if ($stmtInsert->execute()) {
+            $result['error'] = false;
+            $result['error_code'] = 0;
+            $result['message'] = "Event added to favourites.";
+        } else {
+            $errorInfo = $stmtInsert->errorInfo();
+            $result['message'] = "Failed to add favourite event: " . $errorInfo[2];
+        }
+
+        return $result;
+    }
+    public function removeFavouriteEvent($userId, $eventId)
+    {
+        $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
+
+        // Validate user ID exists
+        $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
+        $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtUser->execute();
+        if (!$stmtUser->fetch()) {
+            $result['error_code'] = 404;
+            $result['message'] = "User not found.";
+            return $result;
+        }
+
+        // Validate event ID exists
+        $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
+        $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $stmtEvent->execute();
+        if (!$stmtEvent->fetch()) {
+            $result['error_code'] = 404;
+            $result['message'] = "Event not found.";
+            return $result;
+        }
+
+        // Check if favourite exists
+        $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+        $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $stmtCheck->execute();
+
+        if (!$stmtCheck->fetch()) {
+            // Not in favourites
+            $result['error_code'] = 404;
+            $result['message'] = "Favourite event not found.";
+            return $result;
+        }
+
+        // Delete favourite
+        $stmtDelete = $this->db->prepare("DELETE FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+        $stmtDelete->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtDelete->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+
+        if ($stmtDelete->execute()) {
+            $result['error'] = false;
+            $result['error_code'] = 0;
+            $result['message'] = "Favourite event removed.";
+        } else {
+            $errorInfo = $stmtDelete->errorInfo();
+            $result['message'] = "Failed to remove favourite event: " . $errorInfo[2];
+        }
+
         return $result;
     }
 
-    // Validate event ID exists
-    $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
-    $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-    $stmtEvent->execute();
-    if (!$stmtEvent->fetch()) {
-        $result['error_code'] = 404;
-        $result['message'] = "Event not found.";
-        return $result;
-    }
+    public function getPastEvents()
+    {
+        $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
 
-    // Check if already favourited to avoid duplicates
-    $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-    $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-    $stmtCheck->execute();
+        // Get current date
+        $today = date('Y-m-d');
 
-    if ($stmtCheck->fetch()) {
-        // Already favourited
-        $result['error'] = false;
-        $result['error_code'] = 0;
-        $result['message'] = "Event already in favourites.";
-        return $result;
-    }
-
-    // Insert into favourites
-    $stmtInsert = $this->db->prepare("INSERT INTO tbl_favourite_events (user_id, event_id, created_at) VALUES (:user_id, :event_id, NOW())");
-    $stmtInsert->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmtInsert->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-
-    if ($stmtInsert->execute()) {
-        $result['error'] = false;
-        $result['error_code'] = 0;
-        $result['message'] = "Event added to favourites.";
-    } else {
-        $errorInfo = $stmtInsert->errorInfo();
-        $result['message'] = "Failed to add favourite event: " . $errorInfo[2];
-    }
-
-    return $result;
-}
-public function removeFavouriteEvent($userId, $eventId)
-{
-    $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
-
-    // Validate user ID exists
-    $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
-    $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmtUser->execute();
-    if (!$stmtUser->fetch()) {
-        $result['error_code'] = 404;
-        $result['message'] = "User not found.";
-        return $result;
-    }
-
-    // Validate event ID exists
-    $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
-    $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-    $stmtEvent->execute();
-    if (!$stmtEvent->fetch()) {
-        $result['error_code'] = 404;
-        $result['message'] = "Event not found.";
-        return $result;
-    }
-
-    // Check if favourite exists
-    $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-    $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-    $stmtCheck->execute();
-
-    if (!$stmtCheck->fetch()) {
-        // Not in favourites
-        $result['error_code'] = 404;
-        $result['message'] = "Favourite event not found.";
-        return $result;
-    }
-
-    // Delete favourite
-    $stmtDelete = $this->db->prepare("DELETE FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-    $stmtDelete->bindParam(':user_id', $userId, PDO::PARAM_INT);
-    $stmtDelete->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-
-    if ($stmtDelete->execute()) {
-        $result['error'] = false;
-        $result['error_code'] = 0;
-        $result['message'] = "Favourite event removed.";
-    } else {
-        $errorInfo = $stmtDelete->errorInfo();
-        $result['message'] = "Failed to remove favourite event: " . $errorInfo[2];
-    }
-
-    return $result;
-}
-
-public function getPastEvents()
-{
-    $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
-
-    // Get current date
-    $today = date('Y-m-d');
-
-    $sql = "
+        $sql = "
         SELECT 
             e.*,
             t.id as ticket_id,
@@ -616,52 +617,49 @@ public function getPastEvents()
         ORDER BY e.date DESC, t.id ASC
     ";
 
-    $stmt = $this->db->prepare($sql);
-    $stmt->bindParam(':today', $today, PDO::PARAM_STR);
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':today', $today, PDO::PARAM_STR);
 
-    if ($stmt->execute()) {
-        $events = [];
+        if ($stmt->execute()) {
+            $events = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $eventId = $row['id'];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $eventId = $row['id'];
 
-            if (!isset($events[$eventId])) {
-                $events[$eventId] = [
-                    "event_id" => $eventId,
-                    "artist_name" => $row['artist_name'],
-                    "event_name" => $row['event_name'],
-                    "section" => $row['section'],
-                    "row" => $row['row'],
-                    "seat" => $row['seat'],
-                    "date" => $row['date'],
-                    "location" => $row['location'],
-                    "time" => $row['time'],
-                    "ticket_type" => $row['ticket_type'],
-                    "level" => $row['level'],
-                    "total_tickets" => $row['total_tickets'],
-                    "image" => $row['image'],
-                    "create_at" => $row['create_at'],
-                    "tickets" => []
-                ];
+                if (!isset($events[$eventId])) {
+                    $events[$eventId] = [
+                        "event_id" => $eventId,
+                        "artist_name" => $row['artist_name'],
+                        "event_name" => $row['event_name'],
+                        "section" => $row['section'],
+                        "row" => $row['row'],
+                        "seat" => $row['seat'],
+                        "date" => $row['date'],
+                        "location" => $row['location'],
+                        "time" => $row['time'],
+                        "ticket_type" => $row['ticket_type'],
+                        "level" => $row['level'],
+                        "total_tickets" => $row['total_tickets'],
+                        "image" => $row['image'],
+                        "create_at" => $row['create_at'],
+                        "tickets" => []
+                    ];
+                }
+
+                if (!empty($row['ticket_id'])) {
+                    $events[$eventId]['tickets'][] = [
+                        "ticket_id" => $row['ticket_id'],
+                        "seat" => $row['ticket_seat'],
+                        "create_at" => $row['ticket_created_at']
+                    ];
+                }
             }
 
-            if (!empty($row['ticket_id'])) {
-                $events[$eventId]['tickets'][] = [
-                    "ticket_id" => $row['ticket_id'],
-                    "seat" => $row['ticket_seat'],
-                    "create_at" => $row['ticket_created_at']
-                ];
-            }
+            $result['error'] = false;
+            $result['error_code'] = ERROR_SUCCESS;
+            $result['data'] = array_values($events);
         }
 
-        $result['error'] = false;
-        $result['error_code'] = ERROR_SUCCESS;
-        $result['data'] = array_values($events);
+        return $result;
     }
-
-    return $result;
 }
-
-
-}
-
