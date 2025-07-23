@@ -21,8 +21,7 @@ define("TEMP_PATH", "/var/www/html/TicketMasterApi/public/uploads/temp/");
 
 
 //define("PROFILE_PHOTOS_PATH", "C:/xampp/htdocs/TicketMasterApi/public/uploads/events/");
-//define("TEMP_PATH", "C:/xampp/htdocs/TicketMasterApi/public/uploads/temp/");
-
+//define("TEMP_PATH", "C:/xampp/htdocs/TicketMasterApi/public/uploads/temp/")
 
 //Paths for url
 define("PROFILE_PATH_URL", "/uploads/events/");
