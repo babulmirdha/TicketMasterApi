@@ -42,6 +42,64 @@ class events extends db_connect
     {
         $this->opponentId = $opponentId;
     }
+public function getAllEventsWithTicketsLatestFirst()
+{
+    $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
+
+    $stmt = $this->db->prepare("
+        SELECT 
+            e.*,
+            t.id as ticket_id,
+            t.seat as ticket_seat,
+            t.create_at as ticket_created_at
+        FROM tbl_events e
+        LEFT JOIN tbl_tickets t ON e.id = t.event_id
+        ORDER BY e.create_at DESC, e.id DESC, t.id ASC
+    ");
+
+    if ($stmt->execute()) {
+        $events = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $eventId = $row['id'];
+
+            if (!isset($events[$eventId])) {
+                $events[$eventId] = [
+                    "event_id" => $eventId,
+                    "user_id" => $row['user_id'],
+                    "artist_name" => $row['artist_name'],
+                    "event_name" => $row['event_name'],
+                    "section" => $row['section'],
+                    "row" => $row['row'],
+                    "seat" => $row['seat'],
+                    "date" => $row['date'],
+                    "location" => $row['location'],
+                    "time" => $row['time'],
+                    "ticket_type" => $row['ticket_type'],
+                    "level" => $row['level'],
+                    "total_tickets" => $row['total_tickets'],
+                    "image" => $row['image'],
+                    "create_at" => $row['create_at'],
+                    "tickets" => []
+                ];
+            }
+
+            if (!empty($row['ticket_id'])) {
+                $events[$eventId]['tickets'][] = [
+                    "ticket_id" => $row['ticket_id'],
+                    "seat" => $row['ticket_seat'],
+                    "create_at" => $row['ticket_created_at']
+                ];
+            }
+        }
+
+        $result['error'] = false;
+        $result['error_code'] = ERROR_SUCCESS;
+        $result['data'] = array_values($events);
+    }
+
+    return $result;
+}
 
     public function newEvent(
         $artist_name,
@@ -223,7 +281,7 @@ class events extends db_connect
 
 
 
-   public function getAllEventsWithTickets()
+   public function getAllupcomingEventsWithTickets()
 {
     $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
 
