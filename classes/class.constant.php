@@ -15,6 +15,11 @@ define("APP_URL", "http://192.168.0.140/TicketMasterApi");
 // define("PROFILE_PHOTOS_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/events/");
 // define("TEMP_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/temp/");
 
+
+// define("PROFILE_PHOTOS_PATH", "/var/www/html/TicketMasterApi/public/uploads/events/");
+// define("TEMP_PATH", "/var/www/html/TicketMasterApi/public/uploads/temp/");
+
+
 define("PROFILE_PHOTOS_PATH", "C:/xampp/htdocs/TicketMasterApi/public/uploads/events/");
 define("TEMP_PATH", "C:/xampp/htdocs/TicketMasterApi/public/uploads/temp/");
 

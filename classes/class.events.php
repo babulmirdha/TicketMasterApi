@@ -42,11 +42,11 @@ class events extends db_connect
     {
         $this->opponentId = $opponentId;
     }
-public function getAllEventsWithTicketsLatestFirst()
-{
-    $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
+    public function getAllEventsWithTicketsLatestFirst()
+    {
+        $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
 
-    $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare("
         SELECT 
             e.*,
             t.id as ticket_id,
@@ -57,49 +57,49 @@ public function getAllEventsWithTicketsLatestFirst()
         ORDER BY e.create_at DESC, e.id DESC, t.id ASC
     ");
 
-    if ($stmt->execute()) {
-        $events = [];
+        if ($stmt->execute()) {
+            $events = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $eventId = $row['id'];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $eventId = $row['id'];
 
-            if (!isset($events[$eventId])) {
-                $events[$eventId] = [
-                    "event_id" => $eventId,
-                    "user_id" => $row['user_id'],
-                    "artist_name" => $row['artist_name'],
-                    "event_name" => $row['event_name'],
-                    "section" => $row['section'],
-                    "row" => $row['row'],
-                    "seat" => $row['seat'],
-                    "date" => $row['date'],
-                    "location" => $row['location'],
-                    "time" => $row['time'],
-                    "ticket_type" => $row['ticket_type'],
-                    "level" => $row['level'],
-                    "total_tickets" => $row['total_tickets'],
-                    "image" => $row['image'],
-                    "create_at" => $row['create_at'],
-                    "tickets" => []
-                ];
+                if (!isset($events[$eventId])) {
+                    $events[$eventId] = [
+                        "event_id" => $eventId,
+                        "user_id" => $row['user_id'],
+                        "artist_name" => $row['artist_name'],
+                        "event_name" => $row['event_name'],
+                        "section" => $row['section'],
+                        "row" => $row['row'],
+                        "seat" => $row['seat'],
+                        "date" => $row['date'],
+                        "location" => $row['location'],
+                        "time" => $row['time'],
+                        "ticket_type" => $row['ticket_type'],
+                        "level" => $row['level'],
+                        "total_tickets" => $row['total_tickets'],
+                        "image" => $row['image'],
+                        "create_at" => $row['create_at'],
+                        "tickets" => []
+                    ];
+                }
+
+                if (!empty($row['ticket_id'])) {
+                    $events[$eventId]['tickets'][] = [
+                        "ticket_id" => $row['ticket_id'],
+                        "seat" => $row['ticket_seat'],
+                        "create_at" => $row['ticket_created_at']
+                    ];
+                }
             }
 
-            if (!empty($row['ticket_id'])) {
-                $events[$eventId]['tickets'][] = [
-                    "ticket_id" => $row['ticket_id'],
-                    "seat" => $row['ticket_seat'],
-                    "create_at" => $row['ticket_created_at']
-                ];
-            }
+            $result['error'] = false;
+            $result['error_code'] = ERROR_SUCCESS;
+            $result['data'] = array_values($events);
         }
 
-        $result['error'] = false;
-        $result['error_code'] = ERROR_SUCCESS;
-        $result['data'] = array_values($events);
+        return $result;
     }
-
-    return $result;
-}
 
     public function newEvent(
         $artist_name,
@@ -281,14 +281,14 @@ public function getAllEventsWithTicketsLatestFirst()
 
 
 
-   public function getAllupcomingEventsWithTickets()
-{
-    $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
+    public function getAllupcomingEventsWithTickets()
+    {
+        $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
 
-    // Get today's date in Y-m-d format
-    $today = date('Y-m-d');
+        // Get today's date in Y-m-d format
+        $today = date('Y-m-d');
 
-    $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare("
         SELECT 
             e.*,
             t.id as ticket_id,
@@ -300,60 +300,60 @@ public function getAllEventsWithTicketsLatestFirst()
         ORDER BY e.date ASC, e.id ASC, t.id ASC
     ");
 
-    $stmt->bindParam(':today', $today);
+        $stmt->bindParam(':today', $today);
 
-    if ($stmt->execute()) {
-        $events = [];
+        if ($stmt->execute()) {
+            $events = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $eventId = $row['id'];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $eventId = $row['id'];
 
-            if (!isset($events[$eventId])) {
-                $events[$eventId] = [
-                    "event_id" => $eventId,
-                    "user_id" => $row['user_id'],
-                    "artist_name" => $row['artist_name'],
-                    "event_name" => $row['event_name'],
-                    "section" => $row['section'],
-                    "row" => $row['row'],
-                    "seat" => $row['seat'],
-                    "date" => $row['date'],
-                    "location" => $row['location'],
-                    "time" => $row['time'],
-                    "ticket_type" => $row['ticket_type'],
-                    "level" => $row['level'],
-                    "total_tickets" => $row['total_tickets'],
-                    "image" => $row['image'],
-                    "create_at" => $row['create_at'],
-                    "tickets" => []
-                ];
+                if (!isset($events[$eventId])) {
+                    $events[$eventId] = [
+                        "event_id" => $eventId,
+                        "user_id" => $row['user_id'],
+                        "artist_name" => $row['artist_name'],
+                        "event_name" => $row['event_name'],
+                        "section" => $row['section'],
+                        "row" => $row['row'],
+                        "seat" => $row['seat'],
+                        "date" => $row['date'],
+                        "location" => $row['location'],
+                        "time" => $row['time'],
+                        "ticket_type" => $row['ticket_type'],
+                        "level" => $row['level'],
+                        "total_tickets" => $row['total_tickets'],
+                        "image" => $row['image'],
+                        "create_at" => $row['create_at'],
+                        "tickets" => []
+                    ];
+                }
+
+                if (!empty($row['ticket_id'])) {
+                    $events[$eventId]['tickets'][] = [
+                        "ticket_id" => $row['ticket_id'],
+                        "seat" => $row['ticket_seat'],
+                        "create_at" => $row['ticket_created_at']
+                    ];
+                }
             }
 
-            if (!empty($row['ticket_id'])) {
-                $events[$eventId]['tickets'][] = [
-                    "ticket_id" => $row['ticket_id'],
-                    "seat" => $row['ticket_seat'],
-                    "create_at" => $row['ticket_created_at']
-                ];
-            }
+            $result['error'] = false;
+            $result['error_code'] = ERROR_SUCCESS;
+            $result['data'] = array_values($events); // reindex array
         }
 
-        $result['error'] = false;
-        $result['error_code'] = ERROR_SUCCESS;
-        $result['data'] = array_values($events); // reindex array
+        return $result;
     }
 
-    return $result;
-}
+    public function getUserEventsWithTickets()
+    {
+        $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
 
-   public function getUserEventsWithTickets()
-{
-    $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
+        $user_id = $this->getRequesterId();
+        $today = date('Y-m-d'); // Current date in Y-m-d format
 
-    $user_id = $this->getRequesterId();
-    $today = date('Y-m-d'); // Current date in Y-m-d format
-
-    $stmt = $this->db->prepare("
+        $stmt = $this->db->prepare("
         SELECT 
             e.*,
             t.id as ticket_id,
@@ -365,51 +365,51 @@ public function getAllEventsWithTicketsLatestFirst()
         ORDER BY e.date ASC, e.id ASC, t.id ASC
     ");
 
-    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $stmt->bindParam(':today', $today, PDO::PARAM_STR);
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->bindParam(':today', $today, PDO::PARAM_STR);
 
-    if ($stmt->execute()) {
-        $events = [];
+        if ($stmt->execute()) {
+            $events = [];
 
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $eventId = $row['id'];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $eventId = $row['id'];
 
-            if (!isset($events[$eventId])) {
-                $events[$eventId] = [
-                    "event_id" => $eventId,
-                    "artist_name" => $row['artist_name'],
-                    "event_name" => $row['event_name'],
-                    "section" => $row['section'],
-                    "row" => $row['row'],
-                    "seat" => $row['seat'],
-                    "date" => $row['date'],
-                    "location" => $row['location'],
-                    "time" => $row['time'],
-                    "ticket_type" => $row['ticket_type'],
-                    "level" => $row['level'],
-                    "total_tickets" => $row['total_tickets'],
-                    "image" => $row['image'],
-                    "create_at" => $row['create_at'],
-                    "tickets" => []
-                ];
+                if (!isset($events[$eventId])) {
+                    $events[$eventId] = [
+                        "event_id" => $eventId,
+                        "artist_name" => $row['artist_name'],
+                        "event_name" => $row['event_name'],
+                        "section" => $row['section'],
+                        "row" => $row['row'],
+                        "seat" => $row['seat'],
+                        "date" => $row['date'],
+                        "location" => $row['location'],
+                        "time" => $row['time'],
+                        "ticket_type" => $row['ticket_type'],
+                        "level" => $row['level'],
+                        "total_tickets" => $row['total_tickets'],
+                        "image" => $row['image'],
+                        "create_at" => $row['create_at'],
+                        "tickets" => []
+                    ];
+                }
+
+                if (!empty($row['ticket_id'])) {
+                    $events[$eventId]['tickets'][] = [
+                        "ticket_id" => $row['ticket_id'],
+                        "seat" => $row['ticket_seat'],
+                        "create_at" => $row['ticket_created_at']
+                    ];
+                }
             }
 
-            if (!empty($row['ticket_id'])) {
-                $events[$eventId]['tickets'][] = [
-                    "ticket_id" => $row['ticket_id'],
-                    "seat" => $row['ticket_seat'],
-                    "create_at" => $row['ticket_created_at']
-                ];
-            }
+            $result['error'] = false;
+            $result['error_code'] = ERROR_SUCCESS;
+            $result['data'] = array_values($events); // Reindex array
         }
 
-        $result['error'] = false;
-        $result['error_code'] = ERROR_SUCCESS;
-        $result['data'] = array_values($events); // Reindex array
+        return $result;
     }
-
-    return $result;
-}
 
 
     public function searchEvents($searchText)
@@ -728,53 +728,51 @@ public function getAllEventsWithTicketsLatestFirst()
     }
 
     public function transferTickets(array $ticket_ids, string $recipient_email)
-{
-    $senderId = $this->getRequesterId();
-    $placeholders = implode(',', array_fill(0, count($ticket_ids), '?'));
+    {
+        $senderId = $this->getRequesterId();
+        $placeholders = implode(',', array_fill(0, count($ticket_ids), '?'));
 
-    $result = ["error" => true, "msg" => "Unknown error"];
+        $result = ["error" => true, "msg" => "Unknown error"];
 
-    // 1. Check if recipient email exists
-    $stmt = $this->db->prepare("SELECT id FROM tbl_users WHERE email = ?");
-    $stmt->execute([$recipient_email]);
-    $recipient = $stmt->fetch(PDO::FETCH_ASSOC);
+        // 1. Check if recipient email exists
+        $stmt = $this->db->prepare("SELECT id FROM tbl_users WHERE email = ?");
+        $stmt->execute([$recipient_email]);
+        $recipient = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$recipient) {
-        $result["msg"] = "Recipient email not found in users list.";
-        return $result;
-    }
+        if (!$recipient) {
+            $result["msg"] = "Recipient email not found in users list.";
+            return $result;
+        }
 
-    $recipientId = (int)$recipient['id'];
+        $recipientId = (int)$recipient['id'];
 
-    // 2. Verify sender owns all tickets
-    $checkStmt = $this->db->prepare("
+        // 2. Verify sender owns all tickets
+        $checkStmt = $this->db->prepare("
         SELECT id FROM tbl_tickets 
         WHERE id IN ($placeholders) AND userId = ?
     ");
-    $params = array_merge($ticket_ids, [$senderId]);
-    $checkStmt->execute($params);
-    $ownedTickets = $checkStmt->fetchAll(PDO::FETCH_COLUMN);
+        $params = array_merge($ticket_ids, [$senderId]);
+        $checkStmt->execute($params);
+        $ownedTickets = $checkStmt->fetchAll(PDO::FETCH_COLUMN);
 
-    if (count($ownedTickets) !== count($ticket_ids)) {
-        $result["msg"] = "One or more tickets do not belong to you.";
-        return $result;
-    }
+        if (count($ownedTickets) !== count($ticket_ids)) {
+            $result["msg"] = "One or more tickets do not belong to you.";
+            return $result;
+        }
 
-    // 3. Update tickets to recipient userId
-    $updateStmt = $this->db->prepare("
+        // 3. Update tickets to recipient userId
+        $updateStmt = $this->db->prepare("
         UPDATE tbl_tickets SET userId = ? WHERE id IN ($placeholders)
     ");
-    $updateParams = array_merge([$recipientId], $ticket_ids);
+        $updateParams = array_merge([$recipientId], $ticket_ids);
 
-    if ($updateStmt->execute($updateParams)) {
-        $result["error"] = false;
-        $result["msg"] = "Ticket(s) successfully transferred.";
-    } else {
-        $result["msg"] = "Failed to transfer tickets.";
+        if ($updateStmt->execute($updateParams)) {
+            $result["error"] = false;
+            $result["msg"] = "Ticket(s) successfully transferred.";
+        } else {
+            $result["msg"] = "Failed to transfer tickets.";
+        }
+
+        return $result;
     }
-
-    return $result;
-}
-
-
 }
