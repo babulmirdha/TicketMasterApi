@@ -8,12 +8,12 @@ require_once '../classes/class.events.php';
 if (!empty($_POST)) {
 
 
-    $userId= isset($_POST['userId']) ? $_POST['userId'] : 0;
+    $user_id= isset($_POST['user_id']) ? $_POST['user_id'] : 0;
 
 
     //Getting My Events
     $events = new events();
-    $events->setRequesterId($userId);
+    $events->setRequesterId($user_id);
     $result=$events->getUserEventsWithTickets();
 
     echo json_encode($result);
