@@ -9,7 +9,7 @@ define("DB_NAME", "u833998383_ticket_master");
 
 //Url
 // define("APP_URL","https://appsghar.com/projects/ticket_master/v1");
-define("APP_URL", "http://192.168.0.245/TicketMasterApi");
+define("APP_URL", "http://192.168.0.245/TicketMasterApi/v2");
 
 //Paths
 // define("PROFILE_PHOTOS_PATH","/home/u833998383/domains/appsghar.com/public_html/projects/ticket_master/uploads/events/");
