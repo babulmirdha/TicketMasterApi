@@ -2,9 +2,9 @@
 require_once '../classes/class.constant.php';
 require_once '../classes/class.events.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-    $userId = isset($_POST['userId']) ? intval($_POST['userId']) : 0;
+    $userId = isset($_GET['userId']) ? intval($_GET['userId']) : 0;
 
     header('Content-Type: application/json');
 
