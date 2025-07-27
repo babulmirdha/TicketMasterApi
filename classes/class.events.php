@@ -100,81 +100,81 @@ class events extends db_connect
 
         return $result;
     }
+public function newEvent(
+    $artist_name,
+    $event_name,
+    $section,
+    $row,
+    $seat,
+    $date,
+    $location,
+    $time,
+    $ticket_type,
+    $level,
+    $total_tickets,
+    $image
+) {
+    $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
+    $user_id = $this->getRequesterId();
+    $create_at = time();
 
-    public function newEvent(
-        $artist_name,
-        $event_name,
-        $section,
-        $row,
-        $seat,
-        $date,
-        $location,
-        $time,
-        $ticket_type,
-        $level,
-        $total_tickets,
-        $image
-
-    ) {
-        $result = array("error" => true, "error_code" => ERROR_UNKNOWN);
-        $user_id = $this->getRequesterId();
-        $create_at = time();
-
-        $sql = "
+    $sql = "
         INSERT INTO tbl_events (
-            user_id, artist_name, event_name, section, row, seat,
-            date, location, time, ticket_type, level, total_tickets, image, create_at
+            user_id, artist_name, event_name, section, `row`, seat,
+            date, location, `time`, ticket_type, level, total_tickets, image, create_at
         ) VALUES (
             :user_id, :artist_name, :event_name, :section, :row, :seat,
             :date, :location, :time, :ticket_type, :level, :total_tickets, :image, :create_at
         )
     ";
 
-        $stmt = $this->db->prepare($sql);
+    $stmt = $this->db->prepare($sql);
 
-        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-        $stmt->bindParam(':artist_name', $artist_name, PDO::PARAM_STR);
-        $stmt->bindParam(':event_name', $event_name, PDO::PARAM_STR);
-        $stmt->bindParam(':section', $section, PDO::PARAM_INT);
-        $stmt->bindParam(':row', $row, PDO::PARAM_INT);
-        $stmt->bindParam(':seat', $seat, PDO::PARAM_INT);
-        $stmt->bindParam(':date', $date, PDO::PARAM_STR);
-        $stmt->bindParam(':location', $location, PDO::PARAM_STR);
-        $stmt->bindParam(':time', $time, PDO::PARAM_STR);
-        $stmt->bindParam(':ticket_type', $ticket_type, PDO::PARAM_STR);
-        $stmt->bindParam(':level', $level, PDO::PARAM_STR);
-        $stmt->bindParam(':total_tickets', $total_tickets, PDO::PARAM_INT);
-        $stmt->bindParam(':image', $image, PDO::PARAM_STR);
-        $stmt->bindParam(':create_at', $create_at, PDO::PARAM_INT);
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->bindParam(':artist_name', $artist_name, PDO::PARAM_STR);
+    $stmt->bindParam(':event_name', $event_name, PDO::PARAM_STR);
+    $stmt->bindParam(':section', $section, PDO::PARAM_INT);
+    $stmt->bindParam(':row', $row, PDO::PARAM_INT);
+    $stmt->bindParam(':seat', $seat, PDO::PARAM_INT);
+    $stmt->bindParam(':date', $date, PDO::PARAM_STR);
+    $stmt->bindParam(':location', $location, PDO::PARAM_STR);
+    $stmt->bindParam(':time', $time, PDO::PARAM_STR);
+    $stmt->bindParam(':ticket_type', $ticket_type, PDO::PARAM_STR);
+    $stmt->bindParam(':level', $level, PDO::PARAM_STR);
+    $stmt->bindParam(':total_tickets', $total_tickets, PDO::PARAM_INT);
+    $stmt->bindParam(':image', $image, PDO::PARAM_STR);
+    $stmt->bindParam(':create_at', $create_at, PDO::PARAM_INT);
 
-        if ($stmt->execute()) {
-            $eventId = $this->db->lastInsertId();
+    if ($stmt->execute()) {
+        $eventId = $this->db->lastInsertId();
 
-            // Insert into tbl_tickets
-            $ticketSql = "
+        // Insert into tbl_tickets
+        $ticketSql = "
             INSERT INTO tbl_tickets (event_id, seat, create_at, userId)
-            VALUES (:event_id, :seat, :create_at, :user_id) ";
+            VALUES (:event_id, :seat, :create_at, :user_id)
+        ";
 
-            $ticketStmt = $this->db->prepare($ticketSql);
+        $ticketStmt = $this->db->prepare($ticketSql);
 
-            for ($i = 0; $i < $total_tickets; $i++) {
-                $currentSeat = $seat + $i;
-                $ticketStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-                $ticketStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-                $ticketStmt->bindParam(':seat', $currentSeat, PDO::PARAM_INT);
-                $ticketStmt->bindParam(':create_at', $create_at, PDO::PARAM_INT);
-                $ticketStmt->execute();
-            }
-
-            $result['error'] = false;
-            $result['error_code'] = ERROR_SUCCESS;
-            $result['msg'] = "Event and tickets created successfully.";
-        } else {
-            $result['msg'] = "Failed to create event.";
+        for ($i = 0; $i < $total_tickets; $i++) {
+            $currentSeat = $seat + $i;
+            $ticketStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+            $ticketStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $ticketStmt->bindParam(':seat', $currentSeat, PDO::PARAM_INT);
+            $ticketStmt->bindParam(':create_at', $create_at, PDO::PARAM_INT);
+            $ticketStmt->execute();
         }
 
-        return $result;
+        $result['error'] = false;
+        $result['error_code'] = ERROR_SUCCESS;
+        $result['msg'] = "Event and tickets created successfully.";
+    } else {
+        $result['msg'] = "Failed to create event.";
     }
+
+    return $result;
+}
+
     public function updateEvent(
         $eventId,
         $artist_name,
