@@ -661,6 +661,47 @@ class events extends db_connect
 
         return $result;
     }
+    public function toggleFavoriteEvent($userId, $eventId)
+    {
+        $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
+
+        // Validate user ID exists
+        $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
+        $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtUser->execute();
+        if (!$stmtUser->fetch()) {
+            $result['error_code'] = 404;
+            $result['message'] = "User not found.";
+            return $result;
+        }
+
+        // Validate event ID exists
+        $stmtEvent = $this->db->prepare("SELECT id FROM tbl_events WHERE id = :event_id");
+        $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $stmtEvent->execute();
+        if (!$stmtEvent->fetch()) {
+            $result['error_code'] = 404;
+            $result['message'] = "Event not found.";
+            return $result;
+        }
+
+        // Check if the event is already favorited
+        $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
+        $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $stmtCheck->execute();
+
+        // If favorited, remove it, else add it
+        if ($stmtCheck->fetch()) {
+            // Remove the favorite
+            $result = $this->removeFavouriteEvent($userId, $eventId);
+        } else {
+            // Add the favorite
+            $result = $this->addFavouriteEvent($userId, $eventId);
+        }
+
+        return $result;
+    }
 
     public function getPastEvents()
     {
