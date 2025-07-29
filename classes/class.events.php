@@ -51,7 +51,8 @@ class events extends db_connect
             e.*,
             t.id as ticket_id,
             t.seat as ticket_seat,
-            t.create_at as ticket_created_at
+            t.create_at as ticket_created_at,
+            t.userId
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         ORDER BY e.create_at DESC, e.id DESC, t.id ASC
@@ -86,6 +87,7 @@ class events extends db_connect
 
                 if (!empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
+                        "userId" => $row['userId'],
                         "ticket_id" => $row['ticket_id'],
                         "seat" => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at']
@@ -293,7 +295,8 @@ class events extends db_connect
             e.*,
             t.id as ticket_id,
             t.seat as ticket_seat,
-            t.create_at as ticket_created_at
+            t.create_at as ticket_created_at,
+        t.userId 
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE e.date >= :today
@@ -331,6 +334,7 @@ class events extends db_connect
 
                 if (!empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
+                        "userId" => $row['userId'],
                         "ticket_id" => $row['ticket_id'],
                         "seat" => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at']
@@ -358,7 +362,8 @@ class events extends db_connect
             e.*,
             t.id as ticket_id,
             t.seat as ticket_seat,
-            t.create_at as ticket_created_at
+            t.create_at as ticket_created_at,
+             t.userId
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE e.user_id = :user_id AND e.date >= :today
@@ -396,6 +401,7 @@ class events extends db_connect
 
                 if (!empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
+                        "userId" => $row['userId'],
                         "ticket_id" => $row['ticket_id'],
                         "seat" => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at']
@@ -420,7 +426,7 @@ class events extends db_connect
         $likeSearch = "%" . $searchText . "%";
 
         $stmt = $this->db->prepare("
-        SELECT e.*, t.id as ticket_id, t.seat as ticket_seat, t.create_at as ticket_created_at
+        SELECT e.*, t.id as ticket_id, t.seat as ticket_seat, t.create_at as ticket_created_at, t.userId 
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE (
@@ -463,6 +469,7 @@ class events extends db_connect
 
                 if (!empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
+                        "userId" => $row['userId'],
                         "ticket_id" => $row['ticket_id'],
                         "seat" => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at']
@@ -498,7 +505,8 @@ class events extends db_connect
                 e.*,
                 t.id as ticket_id,
                 t.seat as ticket_seat,
-                t.create_at as ticket_created_at
+                t.create_at as ticket_created_at,
+                 t.userId
             FROM tbl_favourite_events f
             JOIN tbl_events e ON f.event_id = e.id
             LEFT JOIN tbl_tickets t ON e.id = t.event_id
@@ -536,6 +544,7 @@ class events extends db_connect
 
                 if (!empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
+                        "userId" => $row['userId'],
                         "ticket_id" => $row['ticket_id'],
                         "seat" => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at']
@@ -715,7 +724,8 @@ class events extends db_connect
             e.*,
             t.id as ticket_id,
             t.seat as ticket_seat,
-            t.create_at as ticket_created_at
+            t.create_at as ticket_created_at,
+            t.userId 
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE e.date < :today
@@ -753,6 +763,7 @@ class events extends db_connect
 
                 if (!empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
+                        "userId" => $row['userId'],
                         "ticket_id" => $row['ticket_id'],
                         "seat" => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at']
