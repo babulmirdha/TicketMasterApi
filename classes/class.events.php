@@ -713,13 +713,13 @@ public function newEvent(
     }
 
     public function getPastEvents()
-    {
-        $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
+{
+    $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
 
-        // Get current date
-        $today = date('Y-m-d');
+    // Get current date
+    $today = date('Y-m-d');
 
-        $sql = "
+    $sql = "
         SELECT 
             e.*,
             t.id as ticket_id,
@@ -728,56 +728,56 @@ public function newEvent(
             t.userId 
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
-        WHERE e.date < :today
+        WHERE DATE(e.date) < :today
         ORDER BY e.date DESC, t.id ASC
     ";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':today', $today, PDO::PARAM_STR);
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':today', $today, PDO::PARAM_STR);
 
-        if ($stmt->execute()) {
-            $events = [];
+    if ($stmt->execute()) {
+        $events = [];
 
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $eventId = $row['id'];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $eventId = $row['id'];
 
-                if (!isset($events[$eventId])) {
-                    $events[$eventId] = [
-                        "event_id" => $eventId,
-                        "artist_name" => $row['artist_name'],
-                        "event_name" => $row['event_name'],
-                        "section" => $row['section'],
-                        "row" => $row['row'],
-                        "seat" => $row['seat'],
-                        "date" => $row['date'],
-                        "location" => $row['location'],
-                        "time" => $row['time'],
-                        "ticket_type" => $row['ticket_type'],
-                        "level" => $row['level'],
-                        "total_tickets" => $row['total_tickets'],
-                        "image" => $row['image'],
-                        "create_at" => $row['create_at'],
-                        "tickets" => []
-                    ];
-                }
-
-                if (!empty($row['ticket_id'])) {
-                    $events[$eventId]['tickets'][] = [
-                        "userId" => $row['userId'],
-                        "ticket_id" => $row['ticket_id'],
-                        "seat" => $row['ticket_seat'],
-                        "create_at" => $row['ticket_created_at']
-                    ];
-                }
+            if (!isset($events[$eventId])) {
+                $events[$eventId] = [
+                    "event_id" => $eventId,
+                    "artist_name" => $row['artist_name'],
+                    "event_name" => $row['event_name'],
+                    "section" => $row['section'],
+                    "row" => $row['row'],
+                    "seat" => $row['seat'],
+                    "date" => $row['date'],
+                    "location" => $row['location'],
+                    "time" => $row['time'],
+                    "ticket_type" => $row['ticket_type'],
+                    "level" => $row['level'],
+                    "total_tickets" => $row['total_tickets'],
+                    "image" => $row['image'],
+                    "create_at" => $row['create_at'],
+                    "tickets" => []
+                ];
             }
 
-            $result['error'] = false;
-            $result['error_code'] = ERROR_SUCCESS;
-            $result['data'] = array_values($events);
+            if (!empty($row['ticket_id'])) {
+                $events[$eventId]['tickets'][] = [
+                    "userId" => $row['userId'],
+                    "ticket_id" => $row['ticket_id'],
+                    "seat" => $row['ticket_seat'],
+                    "create_at" => $row['ticket_created_at']
+                ];
+            }
         }
 
-        return $result;
+        $result['error'] = false;
+        $result['error_code'] = ERROR_SUCCESS;
+        $result['data'] = array_values($events);
     }
+
+    return $result;
+}
 
     public function transferTickets(array $ticket_ids, string $recipient_email)
     {
