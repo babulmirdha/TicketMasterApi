@@ -121,14 +121,14 @@ CREATE TABLE `tbl_tickets` (
   `event_id` int(11) NOT NULL,
   `seat` int(11) NOT NULL,
   `create_at` int(11) NOT NULL,
-  `userId` int(11) NOT NULL
+  `user_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tbl_tickets`
 --
 
-INSERT INTO `tbl_tickets` (`id`, `event_id`, `seat`, `create_at`, `userId`) VALUES
+INSERT INTO `tbl_tickets` (`id`, `event_id`, `seat`, `create_at`, `user_id`) VALUES
 (1, 2, 2, 1752179320, 1),
 (2, 2, 3, 1752179320, 1),
 (3, 2, 4, 1752179320, 1),

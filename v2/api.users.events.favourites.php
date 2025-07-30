@@ -4,21 +4,21 @@ require_once '../classes/class.events.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-    $userId = isset($_GET['userId']) ? intval($_GET['userId']) : 0;
+    $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
 
     header('Content-Type: application/json');
 
-    if ($userId <= 0) {
+    if ($user_id <= 0) {
         echo json_encode([
             "error" => true,
             "error_code" => 400,
-            "message" => "Invalid or missing userId"
+            "message" => "Invalid or missing user_id"
         ]);
         exit;
     }
 
     $events = new events();
-    $events->setRequesterId($userId);
+    $events->setRequesterId($user_id);
 
     $result = $events->getFavouriteEventsForUser();
 

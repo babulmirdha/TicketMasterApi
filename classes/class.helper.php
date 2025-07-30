@@ -29,7 +29,7 @@ class helper extends db_connect
     {
         $helper = new helper(null);
 
-        if ($helper->getUserId($matches[1]) != 0) {
+        if ($helper->getuser_id($matches[1]) != 0) {
 
             return "@<a class=\"username_link\" href=/$matches[1]>$matches[1]</a>";
 
@@ -157,7 +157,7 @@ class helper extends db_connect
         return "/img/profile_default_photo.png";
     }
 
-    public function getUserId($username)
+    public function getuser_id($username)
     {
         $username = helper::clearText($username);
         $username = helper::escapeText($username);
@@ -176,7 +176,7 @@ class helper extends db_connect
         return 0;
     }
 
-    public function getUserIdByFacebook($fb_id)
+    public function getuser_idByFacebook($fb_id)
     {
         $fb_id = helper::clearText($fb_id);
         $fb_id = helper::escapeText($fb_id);
@@ -195,7 +195,7 @@ class helper extends db_connect
         return 0;
     }
 
-    public function getUserIdByEmail($email)
+    public function getuser_idByEmail($email)
     {
         $stmt = $this->db->prepare("SELECT id FROM users WHERE email = (:email) LIMIT 1");
         $stmt->bindParam(":email", $email, PDO::PARAM_STR);

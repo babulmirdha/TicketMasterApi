@@ -49,7 +49,7 @@ class events extends db_connect
             t.id as ticket_id,
             t.seat as ticket_seat,
             t.create_at as ticket_created_at,
-            t.userId
+            t.user_id
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         ORDER BY e.create_at DESC, e.id DESC, t.id ASC
@@ -84,7 +84,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "userId"    => $row['userId'],
+                        "user_id"    => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -149,7 +149,7 @@ class events extends db_connect
 
             // Insert into tbl_tickets
             $ticketSql = "
-            INSERT INTO tbl_tickets (event_id, seat, create_at, userId)
+            INSERT INTO tbl_tickets (event_id, seat, create_at, user_id)
             VALUES (:event_id, :seat, :create_at, :user_id)
         ";
 
@@ -191,7 +191,7 @@ class events extends db_connect
     ) {
         $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
 
-        $userId = $this->getRequesterId();
+        $user_id = $this->getRequesterId();
 
         // First, verify that this event belongs to the requester to prevent unauthorized updates
         $checkSql  = "SELECT user_id FROM tbl_events WHERE id = :event_id";
@@ -200,7 +200,7 @@ class events extends db_connect
         $checkStmt->execute();
         $ownerId = $checkStmt->fetchColumn();
 
-        // if (!$ownerId || $ownerId != $userId) {
+        // if (!$ownerId || $ownerId != $user_id) {
         //     $result['msg'] = "Unauthorized or event not found.";
         //     return $result;
         // }
@@ -209,7 +209,7 @@ class events extends db_connect
             return $result;
         }
 
-        if ($ownerId != $userId) {
+        if ($ownerId != $user_id) {
             $result['msg'] = "Unauthorized: You do not own this event.";
             return $result;
         }
@@ -292,7 +292,7 @@ class events extends db_connect
             t.id as ticket_id,
             t.seat as ticket_seat,
             t.create_at as ticket_created_at,
-            t.userId
+            t.user_id
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE STR_TO_DATE(e.date, '%Y-%m-%d') >= STR_TO_DATE(:today, '%Y-%m-%d')
@@ -330,7 +330,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "userId"    => $row['userId'],
+                        "user_id"    => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -359,7 +359,7 @@ class events extends db_connect
             t.id as ticket_id,
             t.seat as ticket_seat,
             t.create_at as ticket_created_at,
-             t.userId
+             t.user_id
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE e.user_id = :user_id AND e.date >= :today
@@ -397,7 +397,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "userId"    => $row['userId'],
+                        "user_id"    => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -416,12 +416,12 @@ class events extends db_connect
     public function searchEvents($searchText)
     {
         $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
-        $userId = $this->getRequesterId();
+        $user_id = $this->getRequesterId();
 
         $likeSearch = "%" . $searchText . "%";
 
         $stmt = $this->db->prepare("
-        SELECT e.*, t.id as ticket_id, t.seat as ticket_seat, t.create_at as ticket_created_at, t.userId
+        SELECT e.*, t.id as ticket_id, t.seat as ticket_seat, t.create_at as ticket_created_at, t.user_id
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE (
@@ -464,7 +464,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "userId"    => $row['userId'],
+                        "user_id"    => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -484,9 +484,9 @@ class events extends db_connect
     {
         $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "data" => []];
 
-        $userId = $this->getRequesterId();
+        $user_id = $this->getRequesterId();
 
-        if (! $userId) {
+        if (! $user_id) {
             $result['error_code'] = 401; // Unauthorized or invalid user ID
             $result['error']      = true;
             return $result;
@@ -499,7 +499,7 @@ class events extends db_connect
                 t.id as ticket_id,
                 t.seat as ticket_seat,
                 t.create_at as ticket_created_at,
-                 t.userId
+                 t.user_id
             FROM tbl_favourite_events f
             JOIN tbl_events e ON f.event_id = e.id
             LEFT JOIN tbl_tickets t ON e.id = t.event_id
@@ -507,7 +507,7 @@ class events extends db_connect
             ORDER BY f.created_at DESC, t.id ASC
         ");
 
-            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
             $stmt->execute();
 
             $events = [];
@@ -537,7 +537,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "userId"    => $row['userId'],
+                        "user_id"    => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -556,13 +556,13 @@ class events extends db_connect
 
         return $result;
     }
-    public function addFavouriteEvent($userId, $eventId)
+    public function addFavouriteEvent($user_id, $eventId)
     {
         $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
 
         // Validate user ID exists
         $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
-        $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtUser->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtUser->execute();
         if (! $stmtUser->fetch()) {
             $result['error_code'] = 404;
@@ -582,7 +582,7 @@ class events extends db_connect
 
         // Check if already favourited to avoid duplicates
         $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-        $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtCheck->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
         $stmtCheck->execute();
 
@@ -596,7 +596,7 @@ class events extends db_connect
 
         // Insert into favourites
         $stmtInsert = $this->db->prepare("INSERT INTO tbl_favourite_events (user_id, event_id, created_at) VALUES (:user_id, :event_id, NOW())");
-        $stmtInsert->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtInsert->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtInsert->bindParam(':event_id', $eventId, PDO::PARAM_INT);
 
         if ($stmtInsert->execute()) {
@@ -610,13 +610,13 @@ class events extends db_connect
 
         return $result;
     }
-    public function removeFavouriteEvent($userId, $eventId)
+    public function removeFavouriteEvent($user_id, $eventId)
     {
         $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
 
         // Validate user ID exists
         $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
-        $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtUser->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtUser->execute();
         if (! $stmtUser->fetch()) {
             $result['error_code'] = 404;
@@ -636,7 +636,7 @@ class events extends db_connect
 
         // Check if favourite exists
         $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-        $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtCheck->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
         $stmtCheck->execute();
 
@@ -649,7 +649,7 @@ class events extends db_connect
 
         // Delete favourite
         $stmtDelete = $this->db->prepare("DELETE FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-        $stmtDelete->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtDelete->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtDelete->bindParam(':event_id', $eventId, PDO::PARAM_INT);
 
         if ($stmtDelete->execute()) {
@@ -663,13 +663,13 @@ class events extends db_connect
 
         return $result;
     }
-    public function toggleFavoriteEvent($userId, $eventId)
+    public function toggleFavoriteEvent($user_id, $eventId)
     {
         $result = ["error" => true, "error_code" => ERROR_UNKNOWN, "message" => "Unknown error"];
 
         // Validate user ID exists
         $stmtUser = $this->db->prepare("SELECT id FROM tbl_users WHERE id = :user_id");
-        $stmtUser->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtUser->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtUser->execute();
         if (! $stmtUser->fetch()) {
             $result['error_code'] = 404;
@@ -689,17 +689,17 @@ class events extends db_connect
 
         // Check if the event is already favorited
         $stmtCheck = $this->db->prepare("SELECT id FROM tbl_favourite_events WHERE user_id = :user_id AND event_id = :event_id");
-        $stmtCheck->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmtCheck->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmtCheck->bindParam(':event_id', $eventId, PDO::PARAM_INT);
         $stmtCheck->execute();
 
         // If favorited, remove it, else add it
         if ($stmtCheck->fetch()) {
             // Remove the favorite
-            $result = $this->removeFavouriteEvent($userId, $eventId);
+            $result = $this->removeFavouriteEvent($user_id, $eventId);
         } else {
             // Add the favorite
-            $result = $this->addFavouriteEvent($userId, $eventId);
+            $result = $this->addFavouriteEvent($user_id, $eventId);
         }
 
         return $result;
@@ -719,7 +719,7 @@ class events extends db_connect
             t.id as ticket_id,
             t.seat as ticket_seat,
             t.create_at as ticket_created_at,
-            t.userId
+            t.user_id
         FROM tbl_events e
         LEFT JOIN tbl_tickets t ON e.id = t.event_id
         WHERE STR_TO_DATE(e.date, '%Y-%m-%d') < STR_TO_DATE(:today, '%Y-%m-%d')
@@ -757,7 +757,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "userId"    => $row['userId'],
+                        "user_id"    => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -795,7 +795,7 @@ class events extends db_connect
         // 2. Verify sender owns all tickets
         $checkStmt = $this->db->prepare("
         SELECT id FROM tbl_tickets
-        WHERE id IN ($placeholders) AND userId = ?
+        WHERE id IN ($placeholders) AND user_id = ?
     ");
         $params = array_merge($ticket_ids, [$senderId]);
         $checkStmt->execute($params);
@@ -806,9 +806,9 @@ class events extends db_connect
             return $result;
         }
 
-        // 3. Update tickets to recipient userId
+        // 3. Update tickets to recipient user_id
         $updateStmt = $this->db->prepare("
-        UPDATE tbl_tickets SET userId = ? WHERE id IN ($placeholders)
+        UPDATE tbl_tickets SET user_id = ? WHERE id IN ($placeholders)
     ");
         $updateParams = array_merge([$recipientId], $ticket_ids);
 

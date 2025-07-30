@@ -37,12 +37,12 @@ class accounts extends db_connect
         $stmt->bindParam(":password", $hashedPassword, PDO::PARAM_STR);
 
         if ($stmt->execute()) {
-            $userId = $this->db->lastInsertId();
+            $user_id = $this->db->lastInsertId();
 
             $result = array(
                 "error" => false,
                 "error_code" => ERROR_SUCCESS,
-                "userId" => $userId
+                "user_id" => $user_id
             );
         } else {
             // Optional: log error

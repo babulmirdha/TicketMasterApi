@@ -3,12 +3,12 @@ require_once '../classes/class.constant.php';
 require_once '../classes/class.events.php';
 
 if (!empty($_POST)) {
-    $userId = isset($_POST['userId']) ? intval($_POST['userId']) : 0;
+    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
     $eventId = isset($_POST['eventId']) ? intval($_POST['eventId']) : 0;
 
-    if ($userId > 0 && $eventId > 0) {
+    if ($user_id > 0 && $eventId > 0) {
         $events = new events();  // or favourites class if separate
-        $result = $events->addFavouriteEvent($userId, $eventId);
+        $result = $events->addFavouriteEvent($user_id, $eventId);
 
         header('Content-Type: application/json');
         echo json_encode($result);
