@@ -311,6 +311,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
+                        "user_id"   => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -378,6 +379,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
+                        "user_id"   => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -518,6 +520,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
+                        "user_id"   => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -738,6 +741,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
+                        "user_id"   => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
