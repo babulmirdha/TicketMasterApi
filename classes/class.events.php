@@ -84,7 +84,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "user_id"    => $row['user_id'],
+                        "user_id"   => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -193,17 +193,13 @@ class events extends db_connect
 
         $user_id = $this->getRequesterId();
 
-        // First, verify that this event belongs to the requester to prevent unauthorized updates
+        // First, verify that this event belongs to the requester
         $checkSql  = "SELECT user_id FROM tbl_events WHERE id = :event_id";
         $checkStmt = $this->db->prepare($checkSql);
         $checkStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
         $checkStmt->execute();
         $ownerId = $checkStmt->fetchColumn();
 
-        // if (!$ownerId || $ownerId != $user_id) {
-        //     $result['msg'] = "Unauthorized or event not found.";
-        //     return $result;
-        // }
         if (! $ownerId) {
             $result['msg'] = "Event not found.";
             return $result;
@@ -216,17 +212,17 @@ class events extends db_connect
 
         // Build SQL dynamically to update image only if provided
         $sql = "UPDATE tbl_events SET
-                artist_name = :artist_name,
-                event_name = :event_name,
-                section = :section,
-                row = :row,
-                seat = :seat,
-                date = :date,
-                location = :location,
-                time = :time,
-                ticket_type = :ticket_type,
-                level = :level,
-                total_tickets = :total_tickets";
+            artist_name = :artist_name,
+            event_name = :event_name,
+            section = :section,
+            `row` = :row,
+            seat = :seat,
+            date = :date,
+            location = :location,
+            time = :time,
+            ticket_type = :ticket_type,
+            `level` = :level,
+            total_tickets = :total_tickets";
 
         if ($image !== null && $image !== '') {
             $sql .= ", image = :image";
@@ -255,8 +251,6 @@ class events extends db_connect
         $stmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
 
         if ($stmt->execute()) {
-            // Optionally, update tickets here if your logic requires it
-
             $result['error']      = false;
             $result['error_code'] = ERROR_SUCCESS;
             $result['msg']        = "Event updated successfully.";
@@ -266,6 +260,7 @@ class events extends db_connect
 
         return $result;
     }
+
     public function getEventById($eventId)
     {
         $stmt = $this->db->prepare("SELECT * FROM tbl_events WHERE id = :event_id");
@@ -311,7 +306,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
-                        "user_id"   => $row['user_id'],
+                        "user_id"       => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -331,7 +326,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "user_id"    => $row['user_id'],
+                        "user_id"   => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -379,7 +374,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
-                        "user_id"   => $row['user_id'],
+                        "user_id"       => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -399,7 +394,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "user_id"    => $row['user_id'],
+                        "user_id"   => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -417,7 +412,7 @@ class events extends db_connect
 
     public function searchEvents($searchText)
     {
-        $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
+        $result  = ["error" => true, "error_code" => ERROR_UNKNOWN];
         $user_id = $this->getRequesterId();
 
         $likeSearch = "%" . $searchText . "%";
@@ -466,7 +461,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "user_id"    => $row['user_id'],
+                        "user_id"   => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -520,7 +515,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
-                        "user_id"   => $row['user_id'],
+                        "user_id"       => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -540,7 +535,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "user_id"    => $row['user_id'],
+                        "user_id"   => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
@@ -741,7 +736,7 @@ class events extends db_connect
                 if (! isset($events[$eventId])) {
                     $events[$eventId] = [
                         "event_id"      => $eventId,
-                        "user_id"   => $row['user_id'],
+                        "user_id"       => $row['user_id'],
                         "artist_name"   => $row['artist_name'],
                         "event_name"    => $row['event_name'],
                         "section"       => $row['section'],
@@ -761,7 +756,7 @@ class events extends db_connect
 
                 if (! empty($row['ticket_id'])) {
                     $events[$eventId]['tickets'][] = [
-                        "user_id"    => $row['user_id'],
+                        "user_id"   => $row['user_id'],
                         "ticket_id" => $row['ticket_id'],
                         "seat"      => $row['ticket_seat'],
                         "create_at" => $row['ticket_created_at'],
