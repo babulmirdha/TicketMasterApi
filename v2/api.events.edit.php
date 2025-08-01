@@ -17,8 +17,8 @@ $id = (int) $_GET['id'];
 if (!empty($_POST)) {
     // Required fields
     $requiredFields = [
-        'userId', 'artistName', 'eventName', 'section', 'row', 'seat',
-        'date', 'location', 'time', 'ticketType', 'level', 'total_tickets'
+          'user_id', 'artist_name', 'event_name', 'section', 'row', 'seat',
+        'date', 'location', 'time', 'ticket_type', 'level', 'total_tickets'
     ];
 
     $missingFields = [];
@@ -56,22 +56,22 @@ if (!empty($_POST)) {
     }
 
     // Sanitize and assign variables
-    $userId = (int) $_POST['userId'];
-    $artistName = trim($_POST['artistName']);
-    $eventName = trim($_POST['eventName']);
+    $user_id = (int) $_POST['user_id'];
+    $artistName = trim($_POST['artist_name']);
+    $eventName = trim($_POST['event_name']);
     $section = (int) $_POST['section'];
     $row = (int) $_POST['row'];
     $seat = (int) $_POST['seat'];
     $date = trim($_POST['date']);
     $location = trim($_POST['location']);
     $time = trim($_POST['time']);
-    $ticketType = trim($_POST['ticketType']);
+    $ticketType = trim($_POST['ticket_type']);
     $level = trim($_POST['level']);
     $totalTickets = (int) $_POST['total_tickets'];
 
     // Update event
     $event = new events();
-    $event->setRequesterId($userId);
+    $event->setRequesterId($user_id);
 
     $result = $event->updateEvent(
         $id,

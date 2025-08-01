@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 require_once '../classes/class.constant.php';
 require_once '../classes/class.events.php';
 
@@ -21,9 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Initialize the events class
     $events = new events(); // assumes DB connection is handled in constructor
 
-    // Perform removal
-    $result = $events->removeFavouriteEvent($user_id, $eventId);
+    // Call the toggleFavorite function to either add or remove the event from favorites
+    $result = $events->toggleFavoriteEvent($user_id, $eventId);
 
+    // Return the result as JSON
     header('Content-Type: application/json');
     echo json_encode($result);
     exit;
