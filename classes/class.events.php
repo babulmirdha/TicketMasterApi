@@ -820,4 +820,60 @@ class events extends db_connect
 
         return $result;
     }
+
+    public function deleteEvent($eventId)
+    {
+        $result = ["error" => true, "error_code" => ERROR_UNKNOWN];
+
+        $user_id = $this->getRequesterId();
+
+        // Step 1: Verify ownership
+        $checkStmt = $this->db->prepare("SELECT user_id FROM tbl_events WHERE id = :event_id");
+        $checkStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+        $checkStmt->execute();
+        $ownerId = $checkStmt->fetchColumn();
+
+        if (! $ownerId) {
+            $result['msg'] = "Event not found.";
+            return $result;
+        }
+
+        if ((int) $ownerId !== (int) $user_id) {
+            $result['msg'] = "Unauthorized: You do not own this event.";
+            return $result;
+        }
+
+        try {
+            // Step 2: Begin transaction
+            $this->db->beginTransaction();
+
+            // Step 3: Delete tickets associated with the event
+            $stmtTickets = $this->db->prepare("DELETE FROM tbl_tickets WHERE event_id = :event_id");
+            $stmtTickets->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+            $stmtTickets->execute();
+
+            // Step 4: Delete from favourites
+            $stmtFavs = $this->db->prepare("DELETE FROM tbl_favourite_events WHERE event_id = :event_id");
+            $stmtFavs->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+            $stmtFavs->execute();
+
+            // Step 5: Delete the event
+            $stmtEvent = $this->db->prepare("DELETE FROM tbl_events WHERE id = :event_id");
+            $stmtEvent->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+            $stmtEvent->execute();
+
+            // Step 6: Commit transaction
+            $this->db->commit();
+
+            $result['error']      = false;
+            $result['error_code'] = ERROR_SUCCESS;
+            $result['msg']        = "Event deleted successfully.";
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            $result['msg'] = "Failed to delete event: " . $e->getMessage();
+        }
+
+        return $result;
+    }
+
 }
