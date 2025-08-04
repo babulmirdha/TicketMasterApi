@@ -3,55 +3,39 @@ require_once '../classes/class.constant.php';
 require_once '../classes/class.events.php';
 require_once '../classes/class.imglib.php';
 
-// Start session if needed (for accessing user_id)
-session_start();
+header('Content-Type: application/json');
 
-// Check if the user is logged in (you might adjust this depending on your app's auth method)
-if (!isset($_SESSION['user_id'])) {
+// Ensure it's a POST request
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'error' => true,
-        'msg' => 'Unauthorized access'
+        'msg' => 'Invalid request method. Use POST.'
     ]);
     exit;
 }
 
-$user_id = (int) $_SESSION['user_id'];
-
-// Validate event ID
-if (!isset($_GET['id']) || !is_numeric($_GET['id']) || (int)$_GET['id'] <= 0) {
+// Validate POST parameters
+if (
+    !isset($_POST['user_id']) || !is_numeric($_POST['user_id']) || (int)$_POST['user_id'] <= 0 ||
+    !isset($_POST['id']) || !is_numeric($_POST['id']) || (int)$_POST['id'] <= 0
+) {
     echo json_encode([
         'error' => true,
-        'msg' => 'Valid event ID is required'
+        'msg' => 'Missing or invalid user_id or event id'
     ]);
     exit;
 }
 
-$id = (int) $_GET['id'];
+// Assign variables
+$user_id = (int) $_POST['user_id'];
+$event_id = (int) $_POST['id'];
 
-// Handle POST request to delete event
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Optional: Check if _delete flag is set to confirm deletion
-    if (!isset($_POST['_delete']) || $_POST['_delete'] !== 'true') {
-        echo json_encode([
-            'error' => true,
-            'msg' => 'Delete confirmation flag is missing or invalid'
-        ]);
-        exit;
-    }
+// Delete the event
+$event = new events();
+$event->setRequesterId($user_id);
+$result = $event->deleteEvent($event_id);
 
-    $event = new events();
-    $event->setRequesterId($user_id);
-
-    $result = $event->deleteEvent($id);
-
-    echo json_encode($result);
-    exit;
-}
-
-// If not a POST request
-echo json_encode([
-    'error' => true,
-    'msg' => 'Invalid request method'
-]);
+// Return JSON response
+echo json_encode($result);
 exit;
 ?>
